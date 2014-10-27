@@ -1,7 +1,7 @@
 Tic-Tac-Toe
 ===========
 
-[![Build Status](https://travis-ci.org/Jyang772/Tic-Tac-Toe.svg)](https://travis-ci.org/Jyang772/Tic-Tac-Toe)
+[![Build Status](https://travis-ci.org/Jyang772/Tic-Tac-Toe.svg)](https://travis-ci.org/Jyang772/Tic-Tac-Toe) **Ignore build status. Does not support C++11 properly, yet.**
 
 Tic-Tac-Toe with simple GUI. The AI plays the "perfect" game, always resulting in a draw or the computer winning. 
 The computer _always_ seeks to maximize it's score. While _minimizing_ the player's score by multiplying it by -1.
