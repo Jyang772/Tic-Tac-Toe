@@ -31,66 +31,26 @@ void TicTacToe::instructions(){
 
 }
 
-char TicTacToe::winner(const std::vector<char> &board){
-
-    const int WINNING_ROWS[8][3] = {
-        {0,1,2},
-        {3,4,5},
-        {6,7,8},
-        {0,3,6},
-        {1,4,7},
-        {2,5,8},
-        {0,4,8},
-        {2,4,6} };
-    const int TOTAL_ROWS = 8;
-
-    for(int row = 0; row < TOTAL_ROWS; ++row){
-
-        if( (board[WINNING_ROWS[row][0]] != EMPTY) &&                              //Go through the rows of WINNING_ROWS and determine if board[x][y] is winner
-                (board[WINNING_ROWS[row][0]] == board[WINNING_ROWS[row][1]]) &&
-                (board[WINNING_ROWS[row][1]] == board[WINNING_ROWS[row][2]]) )
-        {
-            return board[WINNING_ROWS[row][0]]; //Return the character that has won
-        }
-    }
-
-    //Check for tie. If no more empty spots, no more moves
-    if(count(board.begin(), board.end(), EMPTY) == 0)
-        return TIE;
-
-    //No one has won yet
-    return NO_ONE;
 
 
-
-
-}
-
-int TicTacToe::askNumber(std::string question, int high, int low){
-
-    int number;
-    do{
-        std::cout << question << " (" << low << " - " << high << "): ";
-        std::cin >> number;
-    } while(number > high || number < low);
-}
-
-char TicTacToe::opponent(char piece){
-    if(piece == X)
-        return O;
+int TicTacToe::opponent(int piece){
+    if(piece == -1)
+        return 1;
     else
-        return X;
+        return -1;
 }
 
 void TicTacToe::humanMove(int move){
 
+    qDebug() << "gridChar: " << human << endl;
+
     board[move] = human;
     qDebug() << "move: " << move << endl;
+    qDebug() << "gridChar: " << human << endl;
 
 
-
-//    if(winner(board) == NO_ONE)
-//        computerMove(opponent(human));
+    //    if(winner(board) == NO_ONE)
+    //        computerMove(opponent(human));
 
 }
 
@@ -148,7 +108,9 @@ void TicTacToe::computerMove(char computer){
         move = 0;
         unsigned int i = 0;
 
-        const int BEST_MOVES[] = {4, 0, 2, 6, 8, 1, 3, 5, 7};
+        //const int BEST_MOVES[] = {4, 0, 2, 6, 8, 1, 3, 5, 7};
+        const int BEST_MOVES[] = {3, 5, 2, 6, 8, 1, 0, 5, 7};
+
         //pick best open square
         while (!found && i <  board.size())
         {
@@ -161,6 +123,8 @@ void TicTacToe::computerMove(char computer){
             ++i;
         }
     }
+
+
 
 
     qDebug() << "computer move: " << move << endl;
@@ -178,13 +142,7 @@ bool TicTacToe::isLegal(int move) const{
     return (board[move] == (int)EMPTY);
 }
 
-
-void TicTacToe::Play(){
-
-
-}
-
-char TicTacToe::winner(){
+int TicTacToe::winner(const std::vector<int> &board){
 
     const int WINNING_ROWS[8][3] = {
         {0,1,2},
@@ -207,16 +165,115 @@ char TicTacToe::winner(){
         }
     }
 
+    //No one has won yet
+    return 0;
+}
+
+int TicTacToe::winner(){
+
+    const int WINNING_ROWS[8][3] = {
+        {0,1,2},
+        {3,4,5},
+        {6,7,8},
+        {0,3,6},
+        {1,4,7},
+        {2,5,8},
+        {0,4,8},
+        {2,4,6} };
+    const int TOTAL_ROWS = 8;
+
+    for(int row = 0; row < TOTAL_ROWS; ++row){
+
+        if( (board[WINNING_ROWS[row][0]] != EMPTY) &&                              //Go through the rows of WINNING_ROWS and determine if board[x][y] is winner
+                (board[WINNING_ROWS[row][0]] == board[WINNING_ROWS[row][1]]) &&
+                (board[WINNING_ROWS[row][1]] == board[WINNING_ROWS[row][2]]) )
+        {
+            qDebug() << "column 1: " << board[1] << endl;
+            return board[WINNING_ROWS[row][0]]; //Return the character that has won
+        }
+    }
+
     //Check for tie. If no more empty spots, no more moves
     if(count(board.begin(), board.end(), EMPTY) == 0)
-        return TIE;
+        //return TIE;
+        return 0;
 
-    //No one has won yet
-    return NO_ONE;
 
 }
 
 
 void TicTacToe::reset(){
-    board = std::vector<char>(NUM_SQUARES,EMPTY);
+    board = std::vector<int>(NUM_SQUARES,EMPTY);
+}
+
+int TicTacToe::minimax(std::vector<int> &board, int player){
+    //printf("Entered minimax. player: %d\n", player);
+    //qDebug() << "Entered minimax. player: " << player << endl;
+
+    //How is the position like for player (their turn) on board?
+    int win = winner(board);
+    if(win != 0)
+    {
+        return win*player;
+    }
+
+    int move = -1;
+    int score = -2;//Losing moves are preferred to no move
+    int i;
+    for(i = 0; i < 9; ++i) {//For all moves,
+        if(board[i] == EMPTY) {//If legal,
+            board[i] = player;//Try the move
+
+            int thisScore = -minimax(board, player*-1);
+            //printf("thisScore: %d, score: %d, player: %d\n",thisScore,score,player);
+            //qDebug() << "player*-1: " << player *-1 << endl;
+            if(thisScore > score) {
+                score = thisScore;
+                move = i;
+            }//Pick the one that's worst for the opponent
+            board[i] = 0;//Reset board after try
+
+        }
+    }
+
+    if(move == -1) return 0;
+    return score;
+
+}
+
+void TicTacToe::computerMax(){
+    //qDebug() << "Inside computerMax()\n";
+    int move = -1;
+    int score = -2;
+    int i;
+    for(i = 0; i < 9; ++i) {
+        if(board[i] == EMPTY) {
+            board[i] = 1;
+            int tempScore = -minimax(board, -1);
+            board[i] = 0;
+            if(tempScore > score) {
+                score = tempScore;
+                move = i;
+            }
+        }
+    }
+    //returns a score based on minimax tree at a given node.
+    board[move] = 1;
+
+    //board[move] = opponent(human);
+    emit computerMove(move); //ambiguous
+
+}
+
+char TicTacToe::gridChar(int i) {
+    switch(i) {
+    case -1:
+        return 'X';
+    case 0:
+        return ' ';
+    case 1:
+        return 'O';
+    }
+
+    return 0;
 }

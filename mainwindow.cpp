@@ -69,7 +69,8 @@ void MainWindow::itemClicked(){
 
     //Read user symbol, and set button to that symbol
     if(humanTurn && game->isLegal(clickedItem->objectName().toInt())){
-        clickedItem->setText(QString(QChar(game->human)));
+        //clickedItem->setText(QString(QChar(game->human)));
+        clickedItem->setText(QString(QChar(game->gridChar(game->human))));
         game->humanMove(clickedItem->objectName().toInt());
         //Check if player has won.
         CheckWinner();
@@ -86,14 +87,17 @@ void MainWindow::begin(){
     if(options->getChar() == 'O'){
 
         text.append(". Computer moves first.");
-        game->human = 'O';
+        //game->human = 'O';
+        game->human = -1;
 
         //Computer makes move
-        game->computerMove(game->opponent(game->human));
+        //game->computerMove(game->opponent(game->human));
+        game->computerMax();
     }
     else{
         text.append(". Select a square.");
-        game->human = 'X';
+        //game->human = 'X';
+        game->human = -1;
         humanTurn = true;
     }
 
@@ -115,13 +119,20 @@ void MainWindow::humanMoves(){
 void MainWindow::computerMove(int move){
 
     humanTurn = false;
-    itemButtons[move]->setText(QString(QChar(game->opponent(game->human))));
+    //itemButtons[move]->setText(QString(QChar(game->opponent(game->human))));
+    itemButtons[move]->setText(QString(QChar(game->gridChar(game->opponent(game->human)))));
+
+    qDebug() << "computer_: " << game->gridChar(game->opponent(game->human)) << endl;
+    qDebug() << "computer#: " << game->opponent(game->human) << endl;
+    //itemButtons[move]->setText(QString(QChar(game->gridChar(move))));
     //Check if computer has won
     CheckWinner();
 }
 
 void MainWindow::CheckWinner(){
 
+    qDebug() << "game->human(): " << game->human << endl;
+    qDebug() << "game->winner(): " << game->winner() << endl;
     if(game->winner() == game->human){
         ui->announce->setText("You have won!");
         humanTurn = false; //Disable clicking
@@ -133,14 +144,15 @@ void MainWindow::CheckWinner(){
         ui->playAgain->setVisible(true);
         return;
     }
-    else if(game->winner() == 'T'){
+    else if(game->winner() == 0){
         ui->announce->setText("TIE!");
         ui->playAgain->setVisible(true);
         return;
     }
 
     if(humanTurn)
-        game->computerMove(game->opponent(game->human));
+        game->computerMax();
+        //game->computerMove(game->opponent(game->human));
     else
         humanMoves();
 }
@@ -156,5 +168,7 @@ void MainWindow::on_playAgain_clicked()
 
     game->reset();
     begin();
+
+    ui->playAgain->setVisible(false);
 
 }
